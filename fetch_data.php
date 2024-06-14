@@ -1,31 +1,37 @@
 <?php
-$conn = mysqli_connect("localhost", "root", "", "midsem");
 
-// Fetch the latest data from the database
-$s1result = mysqli_query($conn, "SELECT sensor1 FROM `sensor` ORDER BY `sensor`.`id` DESC LIMIT 60");
-$s2result = mysqli_query($conn, "SELECT sensor2 FROM `sensor` ORDER BY `sensor`.`id` DESC LIMIT 60");
-$s3result = mysqli_query($conn, "SELECT sensor3 FROM `sensor` ORDER BY `sensor`.`id` DESC LIMIT 60");
+$servername = "localhost";
 
-$temperatureData = [];
-while($row = mysqli_fetch_array($s1result)){
-    $temperatureData[] = $row['sensor1'];
+// REPLACE with your Database name
+$dbname = "environmentaldata";
+// REPLACE with Database user
+$username = "root";
+// REPLACE with Database user password
+$password = "";
+
+// $ir_value = $mq135_analog_value = $mq135_digital_value = $timestamp = "";
+
+$conn = new mysqli($servername, $username, $password, $dbname);
+// Check connection
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
 }
 
-$humidityData = [];
-while($row = mysqli_fetch_array($s2result)){
-    $humidityData[] = $row['sensor2'];
+if (isset($_POST["ir_value"]) && isset($_POST["mq135_analog_value"]) && isset($_POST["mq135_digital_value"])) {
+    $ir_value = $_POST["ir_value"];
+    $mq135_analog_value = $_POST["mq135_analog_value"];
+    $mq135_digital_value = $_POST["mq135_digital_value"];
+
+    $sql = "INSERT INTO sensordata (ir_value, mq135_analog_value, mq135_digital_value) VALUES (" . $ir_value . "," . $mq135_analog_value . "," . $mq135_digital_value . ")";
+
+    // Execute the SQL query and check if it was successful
+    if ($conn->query($sql) === TRUE) {
+        echo "Values inserted in MySQL database table.";
+    } else {
+        // If the query execution failed, print the error
+        echo "Error: " . $sql . "<br>" . $conn->error;
+    }
 }
 
-$soilMoistureData = [];
-while($row = mysqli_fetch_array($s3result)){
-    $soilMoistureData[] = $row['sensor3'];
-}
-
-// Return the data as a JSON response
-header('Content-Type: application/json');
-echo json_encode([
-    'temperatureData' => $temperatureData,
-    'humidityData' => $humidityData,
-    'soilMoistureData' => $soilMoistureData
-]);
+echo json_encode($data);
 ?>
